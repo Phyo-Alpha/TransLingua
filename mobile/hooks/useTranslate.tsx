@@ -11,7 +11,7 @@ export const useTranslate = () => {
     const [error, setError] = useState<string | null>(null);
     const [translatedText, setTranslatedText] = useState<string | null>(null);
 
-    const apiEndpoint = 'http://192.168.1.14:3000/translate'; // Replace with your actual API endpoint
+    const apiEndpoint = 'https://trans-lingua.vercel.app/translate'; // Replace with your actual API endpoint
 
     const translate = async (text: string, language: string) => {
         setIsTranslating(true);
@@ -37,7 +37,7 @@ export const useTranslate = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(`${await response.text()}`);
             }
             console.log('Response:', response);
             const data = await response.json();
