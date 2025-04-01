@@ -1,5 +1,6 @@
 import { Translate } from '@google-cloud/translate/build/src/v2';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { GoogleTranslateResponseDto } from './dto/response';
 
 interface GoogleCred {
     type: string;
@@ -46,14 +47,16 @@ export class GoogleTranslateService {
     async translateText(
         text: string,
         language: string
-    ): Promise<string | null> {
+    ): Promise<GoogleTranslateResponseDto | null> {
         try {
             if (text) {
                 const [response] = await this.translate.translate(
                     text,
                     language
                 );
-                return response;
+                return new GoogleTranslateResponseDto({
+                    translatedText: response
+                });
             }
             return null;
         } catch (e) {
