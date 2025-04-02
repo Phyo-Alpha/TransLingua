@@ -18,8 +18,6 @@ export const useTranslate = () => {
         setError(null);
         setTranslatedText(null);
 
-        console.log('Translating:', text, language);
-
         if (!text || !language) {
             console.log('Invalid input for translation:', { text, language });
             setError('Invalid input for translation');
@@ -37,10 +35,13 @@ export const useTranslate = () => {
             });
 
             if (!response.ok) {
-                throw new Error(`${await response.text()}`);
+                console.log('Translation API error:', response.statusText);
+                setError('Translation API error: ' + response.statusText);
+                return;
             }
-            console.log('Response:', response);
+
             const data = await response.json();
+            console.log('Translation response:', data);
             setTranslatedText(data.translatedText);
         } catch (error: any) {
             setError(error);

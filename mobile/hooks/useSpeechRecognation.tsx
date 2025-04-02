@@ -36,10 +36,10 @@ export const useSpeechRecognition = () => {
     useSpeechRecognitionEvent('result', async (event) => {
         const transcript = event.results[0].transcript;
 
-        console.log('Transcript:', transcript);
+        setState((prev) => ({ ...prev, transcript }));
 
         if (transcript) {
-            await translate(transcript, 'my');
+            await translate(transcript, 'ms');
         }
     });
 
@@ -81,6 +81,7 @@ export const useSpeechRecognition = () => {
 
     return {
         ...state,
+        translatedText,
         startListening,
         stopListening
     };

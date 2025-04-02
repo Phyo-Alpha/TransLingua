@@ -6,12 +6,10 @@ import { View } from 'react-native';
 import { VoiceBox } from 'components/Voicebox';
 
 export default function App() {
-  return (
-    <View className='h-screen flex-1 items-center justify-center'>
-      <ScreenContent title="Home" path="App.tsx">
-        <VoiceBox />
-      </ScreenContent>
-      <StatusBar style="auto" />
-    </View>
-  );
+    return (
+        <View className="h-screen flex-1 items-center justify-center">
+            <VoiceBox />
+            <StatusBar style="auto" />
+        </View>
+    );
 }
