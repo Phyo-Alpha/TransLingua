@@ -14,8 +14,13 @@ export const VoiceBox = () => {
     const [isEnToMs, setIsEnToMs] = useState(true);
     const [fadeAnim] = useState(new Animated.Value(1));
 
-    const { translatedTexts, recognizing, startListening, setState } =
-        useSpeechRecognition();
+    const {
+        translatedTexts,
+        recognizing,
+        transcript,
+        startListening,
+        setState
+    } = useSpeechRecognition();
 
     const handleLanguageToggle = () => {
         if (!isEnToMs) {
@@ -54,43 +59,18 @@ export const VoiceBox = () => {
     }, []);
 
     return (
-        <View className="bg-black flex-1 w-full items-center py-20 px-4">
-            {/* Language Toggle */}
-            <Animated.View
-                style={[styles.toggleContainer, { opacity: fadeAnim }]}
-                className="absolute top-10 right-6 flex-row items-center"
-            >
-                <TouchableOpacity
-                    onPress={handleLanguageToggle}
-                    className="flex-row items-center bg-gray-800/60 rounded-full px-4 py-2"
-                >
-                    <Text className="text-white font-semibold mr-2">
-                        {isEnToMs ? 'EN → MS' : 'MS → EN'}
-                    </Text>
-                    <MaterialIcons
-                        name="swap-horiz"
-                        size={24}
-                        color="#4f46e5"
-                    />
-                </TouchableOpacity>
-            </Animated.View>
-
+        <View className="bg-white flex-1 w-full items-center py-20 px-4">
             {/* Translations List */}
             <View className="w-full max-w-2xl mt-16">
                 {translatedTexts.map((translatedText, index) => (
-                    <View
-                        key={index}
-                        className="w-full mb-4 bg-gray-800/40 rounded-2xl p-6"
-                        style={styles.translationCard}
-                    >
-                        {/* Language Direction Badge */}
-                        <View className="absolute -top-3 right-4 bg-indigo-600 px-3 py-1 rounded-full">
-                            <Text className="text-xs text-white font-bold">
-                                {isEnToMs ? 'EN → MS' : 'MS → EN'}
-                            </Text>
-                        </View>
-
-                        <Text className="text-lg text-white font-medium leading-relaxed">
+                    <View>
+                        <Text className='className="text-3xl text-black font-medium leading-relaxed"'>
+                            {transcript}
+                        </Text>
+                        <Text
+                            key={index}
+                            className="text-3xl text-black font-medium leading-relaxed"
+                        >
                             {translatedText}
                         </Text>
                     </View>
