@@ -4,14 +4,24 @@ import {
 } from 'expo-speech-recognition';
 import { useEffect, useState } from 'react';
 import { useTranslate } from './useTranslate';
+import { AppSettings } from 'App';
+
+export interface TranslatedText {
+    original: string;
+    translation: string;
+    secondaryTranslation?: string;
+    tertiaryTranslation?: string;
+}
 
 interface SpeechRecognitionState {
     recognizing: boolean;
     transcript: string;
     error: string | null;
-    translatedTexts: string[];
+    translatedTexts: TranslatedText[];
     sourceLanguage: string;
     targetLanguage: string;
+    secondaryTargetLanguage?: string;
+    tertiaryTargetLanguage?: string;
 }
 
 const initialState: SpeechRecognitionState = {
@@ -20,13 +30,21 @@ const initialState: SpeechRecognitionState = {
     error: null,
     translatedTexts: [],
     sourceLanguage: 'en-US',
-    targetLanguage: 'ms'
+    targetLanguage: 'ms',
+    secondaryTargetLanguage: 'fr',
+    tertiaryTargetLanguage: 'de'
 };
 
-const MAX_TRANSLATIONS_TO_DISPLAY = -5; // Limit the number of translations to display
+const MAX_TRANSLATIONS_TO_DISPLAY = -1;
 
-export const useSpeechRecognition = () => {
-    const [state, setState] = useState<SpeechRecognitionState>(initialState);
+export const useSpeechRecognition = (initialSettings: AppSettings) => {
+    const [state, setState] = useState<SpeechRecognitionState>({
+        ...initialState,
+        sourceLanguage: initialSettings.sourceLanguage,
+        targetLanguage: initialSettings.primaryTarget,
+        secondaryTargetLanguage: initialSettings.secondaryTarget,
+        tertiaryTargetLanguage: initialSettings.tertiaryTarget
+    });
     const {
         translate,
         translatedText,
@@ -47,25 +65,30 @@ export const useSpeechRecognition = () => {
 
                 const shouldTranslate =
                     prev.transcript.trim() !== '' &&
-                    prev.transcript !== lastTranslated;
+                    prev.transcript !== lastTranslated?.original;
 
                 if (shouldTranslate) {
                     console.log(
                         'Translating',
                         prev.transcript,
                         prev.sourceLanguage,
-                        prev.targetLanguage
+                        prev.targetLanguage,
+                        prev.secondaryTargetLanguage,
+                        prev.tertiaryTargetLanguage
                     );
 
                     // Trigger translation and reset transcript
-                    translate(prev.transcript, state.targetLanguage).finally(
-                        () => {
-                            setState((prevState) => ({
-                                ...prevState,
-                                transcript: '' // Clear transcript after translation
-                            }));
-                        }
-                    );
+                    translate(
+                        prev.transcript,
+                        state.targetLanguage,
+                        state.secondaryTargetLanguage,
+                        state.tertiaryTargetLanguage
+                    ).finally(() => {
+                        setState((prevState) => ({
+                            ...prevState,
+                            transcript: '' // Clear transcript after translation
+                        }));
+                    });
                 }
                 return prev; // Immediate return doesn't change state here
             });
@@ -98,8 +121,14 @@ export const useSpeechRecognition = () => {
                 ...prev,
                 translatedTexts: [
                     ...prev.translatedTexts,
-                    translatedText
-                ].slice(MAX_TRANSLATIONS_TO_DISPLAY) // Keep only the last 5 translations
+                    {
+                        original: translatedText.original,
+                        translation: translatedText.translation,
+                        secondaryTranslation:
+                            translatedText.secondaryTranslation,
+                        tertiaryTranslation: translatedText.tertiaryTranslation
+                    } as TranslatedText
+                ].slice(MAX_TRANSLATIONS_TO_DISPLAY)
             }));
         }
     }, [translatedText]);
