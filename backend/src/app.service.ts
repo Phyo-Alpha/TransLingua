@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GoogleTranslateService } from './google-translate/google-translate.service';
+import { TranslateRequestBody } from './google-translate/dto/request';
 
 @Injectable()
 export class AppService {
@@ -7,7 +8,7 @@ export class AppService {
         private readonly googleTranslateService: GoogleTranslateService
     ) {}
 
-    async translateText(text: string, language: string) {
-        return await this.googleTranslateService.translateText(text, language);
+    async translateText(dto: TranslateRequestBody) {
+        return await this.googleTranslateService.translateText(dto);
     }
 }
