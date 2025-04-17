@@ -19,7 +19,7 @@ export default function App() {
     const [appSettings, setAppSettings] = useState<AppSettings>({
         sourceLanguage: 'en-US',
         primaryTarget: 'ms',
-        secondaryTarget: 'zh',
+        secondaryTarget: 'ar',
         tertiaryTarget: 'ta'
     });
 

@@ -19,9 +19,10 @@ interface LanguageSettings {
 const LANGUAGES = [
     { code: 'en-US', name: 'English' },
     { code: 'ms', name: 'Malay' },
+    { code: 'ar', name: 'Arabic' },
+    { code: 'ta', name: 'Tamil' },
     { code: 'zh', name: 'Chinese' },
     { code: 'ja', name: 'Japanese' },
-    { code: 'ta', name: 'Tamil' },
     { code: 'fr', name: 'French' },
     { code: 'de', name: 'German' },
     { code: 'es', name: 'Spanish' }

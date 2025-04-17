@@ -42,7 +42,7 @@ export const VoiceBox = ({ settings }: { settings: AppSettings }) => {
         if (!recognizing) {
             startListening();
         }
-    }, [recognizing]);
+    }, []);
 
     const turnOnListenMode = () => {
         if (recognizing) {
@@ -58,7 +58,7 @@ export const VoiceBox = ({ settings }: { settings: AppSettings }) => {
 
     return (
         <View className="flex flex-col h-full min-w-full bg-gray-50">
-            <View className="h-full pb-8">
+            <View className="h-full pb-8 flex flex-col justify-center px-3">
                 {translatedTexts.length > 0 &&
                     translatedTexts.map((translation, index) => (
                         <View
@@ -85,16 +85,26 @@ export const VoiceBox = ({ settings }: { settings: AppSettings }) => {
                     </Text>
 
                     {recognizing && (
-                        <Animated.View
-                            style={[
-                                styles.indicator,
-                                {
-                                    transform: [{ scale: pulseAnim }],
-                                    opacity: pulseAnim
-                                }
-                            ]}
-                            className="w-3 h-3 bg-red-500 rounded-full"
-                        />
+                        <View className="flex flex-row gap-2 items-center">
+                            <Animated.View
+                                style={[
+                                    styles.indicator,
+                                    {
+                                        transform: [{ scale: pulseAnim }],
+                                        opacity: pulseAnim
+                                    }
+                                ]}
+                                className="w-3 h-3 bg-red-500 rounded-full"
+                            />
+                            <TouchableOpacity
+                                className="bg-red-500 rounded-full p-2"
+                                onPress={stopListening}
+                            >
+                                <Text className="text-white font-semibold">
+                                    Stop
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
 
                     {!recognizing && (
