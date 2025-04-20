@@ -22,10 +22,8 @@ const LANGUAGES = [
     { code: 'ar', name: 'Arabic' },
     { code: 'ta', name: 'Tamil' },
     { code: 'zh', name: 'Chinese' },
-    { code: 'ja', name: 'Japanese' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'es', name: 'Spanish' }
+    { code: 'ur', name: 'Urdu' },
+    { code: 'bn', name: 'Bengali' }
 ];
 
 export const Settings = ({
@@ -93,11 +91,12 @@ export const Settings = ({
                         onValueChange={(value) =>
                             setSettings((prev) => ({
                                 ...prev,
-                                secondaryTarget: value
+                                secondaryTarget:
+                                    value === 'none' ? undefined : value
                             }))
                         }
                     >
-                        <Picker.Item label="None" value={undefined} />
+                        <Picker.Item label="None" value="none" />
                         {LANGUAGES.map((lang) => (
                             <Picker.Item
                                 key={lang.code}
@@ -115,11 +114,12 @@ export const Settings = ({
                         onValueChange={(value) =>
                             setSettings((prev) => ({
                                 ...prev,
-                                tertiaryTarget: value
+                                tertiaryTarget:
+                                    value === 'none' ? undefined : value
                             }))
                         }
                     >
-                        <Picker.Item label="None" value={undefined} />
+                        <Picker.Item label="None" value="none" />
                         {LANGUAGES.map((lang) => (
                             <Picker.Item
                                 key={lang.code}
