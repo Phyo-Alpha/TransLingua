@@ -77,6 +77,11 @@ export class GoogleTranslateService {
                     translateResponse.tertiaryTranslatedText = response;
                 }
 
+                console.log(
+                    `Translation Response:`,
+                    JSON.stringify(translateResponse, null, 2)
+                );
+
                 return translateResponse;
             }
             return null;
