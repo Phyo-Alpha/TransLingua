@@ -72,15 +72,11 @@ export class TranscriptionGateway
         console.log(
             `Received ${audioBuffer.byteLength} bytes from ${client.id}`
         );
-        this.handleAudioMessage(client, audioBuffer);
+        this.handleAudioMessage(audioBuffer);
         client.emit('ack', 'Audio received');
     }
 
-    handleAudioMessage(client: Socket, payload: any) {
-        console.log(
-            `Received audio message from client ${client.id}:`,
-            payload
-        );
+    handleAudioMessage(payload: any) {
         if (
             this.recognizingStream &&
             this.recognizingStream.destroyed === false
