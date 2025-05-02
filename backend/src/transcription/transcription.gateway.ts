@@ -44,19 +44,21 @@ export class TranscriptionGateway
             .streamingRecognize({
                 config: {
                     encoding: 'LINEAR16',
-                    sampleRateHertz: 16000,
+                    sampleRateHertz: 44100,
                     languageCode: 'en-US',
                     audioChannelCount: 1
                 },
                 interimResults: false
             })
             .on('error', console.error)
-            .on('data', (data) =>
-                console.log(
-                    data.results[0] && data.results[0].alternatives[0]
-                        ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
-                        : '\n\nReached transcription time limit, press Ctrl+C\n'
-                )
+            .on(
+                'data',
+                (data) => console.log(data)
+                // console.log(
+                //     data.results[0] && data.results[0].alternatives[0]
+                //         ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
+                //         : '\n\nReached transcription time limit, press Ctrl+C\n'
+                // )
             );
     }
 
