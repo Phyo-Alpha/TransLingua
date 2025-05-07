@@ -8,13 +8,24 @@
         },
         "plugins": [
             [
-                "expo-speech-recognition",
+                "@siteed/expo-audio-studio",
                 {
-                    "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone.",
-                    "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition.",
-                    "androidSpeechServicePackages": [
-                        "com.google.android.googlequicksearchbox"
-                    ]
+                    "enablePhoneStateHandling": true,
+                    "enableNotifications": true,
+                    "enableBackgroundAudio": true,
+                    "iosBackgroundModes": {
+                        "useVoIP": false,
+                        "useAudio": false,
+                        "useProcessing": false,
+                        "useLocation": false,
+                        "useExternalAccessory": false
+                    },
+                    "iosConfig": {
+                        "allowBackgroundAudioControls": false,
+                        "backgroundProcessingTitle": "Audio Recording",
+                        "microphoneUsageDescription": "Custom microphone usage message",
+                        "notificationUsageDescription": "Custom notification usage message"
+                    }
                 }
             ]
         ],

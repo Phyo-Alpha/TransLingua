@@ -8,16 +8,10 @@ import {
     ScrollView
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-
-interface LanguageSettings {
-    sourceLanguage: string;
-    primaryTarget: string;
-    secondaryTarget?: string;
-    tertiaryTarget?: string;
-}
+import { LanguageSettings } from 'types';
 
 const LANGUAGES = [
-    { code: 'en-US', name: 'English' },
+    { code: 'en', name: 'English' },
     { code: 'ms', name: 'Malay' },
     { code: 'ar', name: 'Arabic' },
     { code: 'ta', name: 'Tamil' },
@@ -43,13 +37,13 @@ export const Settings = ({
                 <Text style={styles.heading}>Language Settings</Text>
 
                 <View style={styles.settingGroup}>
-                    <Text style={styles.label}>Speaker Language</Text>
+                    <Text style={styles.label}>First Language</Text>
                     <Picker
-                        selectedValue={settings.sourceLanguage}
+                        selectedValue={settings.firstLanguage}
                         onValueChange={(value) =>
                             setSettings((prev) => ({
                                 ...prev,
-                                sourceLanguage: value
+                                firstLanguage: value
                             }))
                         }
                     >
@@ -64,35 +58,13 @@ export const Settings = ({
                 </View>
 
                 <View style={styles.settingGroup}>
-                    <Text style={styles.label}>Primary Translation</Text>
+                    <Text style={styles.label}>Second Language</Text>
                     <Picker
-                        selectedValue={settings.primaryTarget}
+                        selectedValue={settings.secondLanguage}
                         onValueChange={(value) =>
                             setSettings((prev) => ({
                                 ...prev,
-                                primaryTarget: value
-                            }))
-                        }
-                    >
-                        {LANGUAGES.map((lang) => (
-                            <Picker.Item
-                                key={lang.code}
-                                label={lang.name}
-                                value={lang.code}
-                            />
-                        ))}
-                    </Picker>
-                </View>
-
-                <View style={styles.settingGroup}>
-                    <Text style={styles.label}>Secondary Translation</Text>
-                    <Picker
-                        selectedValue={settings.secondaryTarget}
-                        onValueChange={(value) =>
-                            setSettings((prev) => ({
-                                ...prev,
-                                secondaryTarget:
-                                    value === 'none' ? undefined : value
+                                secondLanguage: value
                             }))
                         }
                     >
@@ -108,14 +80,35 @@ export const Settings = ({
                 </View>
 
                 <View style={styles.settingGroup}>
-                    <Text style={styles.label}>Tertiary Translation</Text>
+                    <Text style={styles.label}>Third Language</Text>
                     <Picker
-                        selectedValue={settings.tertiaryTarget}
+                        selectedValue={settings.thirdLanguage}
                         onValueChange={(value) =>
                             setSettings((prev) => ({
                                 ...prev,
-                                tertiaryTarget:
-                                    value === 'none' ? undefined : value
+                                thirdLanguage: value
+                            }))
+                        }
+                    >
+                        <Picker.Item label="None" value="none" />
+                        {LANGUAGES.map((lang) => (
+                            <Picker.Item
+                                key={lang.code}
+                                label={lang.name}
+                                value={lang.code}
+                            />
+                        ))}
+                    </Picker>
+                </View>
+
+                <View style={styles.settingGroup}>
+                    <Text style={styles.label}>Fourth Language</Text>
+                    <Picker
+                        selectedValue={settings.fourthLanguage}
+                        onValueChange={(value) =>
+                            setSettings((prev) => ({
+                                ...prev,
+                                fourthLanguage: value
                             }))
                         }
                     >

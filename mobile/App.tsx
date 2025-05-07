@@ -1,57 +1,81 @@
-// App.tsx
-import { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { View, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-import { Settings } from 'pages/Setting';
-import { VoiceBox } from 'pages/Voicebox';
-import './global.css';
+import { View, Modal } from 'react-native';
+import useGladiaSpeechRecognation from './hooks/useGladiaSpeechRecognation';
+import {
+    ExpoAudioStreamModule,
+} from '@siteed/expo-audio-studio'
+import TranscriptionPage from './pages/TranscriptionPage';
+import { useEffect, useState } from 'react';
+import StatusBar from './components/StatusBar';
+import { Settings } from './pages/Setting';
+import { LanguageSettings } from 'types';
 
-export interface AppSettings {
-    sourceLanguage: string;
-    primaryTarget: string;
-    secondaryTarget?: string;
-    tertiaryTarget?: string;
-}
+const DEFAULT_SETTINGS: LanguageSettings = {
+    firstLanguage: 'en',
+    secondLanguage: 'ms',
+    thirdLanguage: 'ar',
+    fourthLanguage: 'ta'
+};
 
 export default function App() {
+    const [permissionGranted, setPermissionGranted] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-    const [appSettings, setAppSettings] = useState<AppSettings>({
-        sourceLanguage: 'en-US',
-        primaryTarget: 'ms'
-    });
+    const [settings, setSettings] = useState<LanguageSettings>(DEFAULT_SETTINGS);
+
+    const {
+        startSession,
+        stopSession,
+        isConnected,
+        isRecording,
+        error,
+        transcript,
+        translations
+    } = useGladiaSpeechRecognation(settings);
+
+    useEffect(() => {
+        const initialize = async () => {
+            const { granted } = await ExpoAudioStreamModule.requestPermissionsAsync();
+            if (granted) {
+                console.log('Microphone permission granted')
+                setPermissionGranted(true);
+                await startSession();
+            } else {
+                console.log('Microphone permission denied')
+            }
+        }
+        initialize();
+    }, [])
+
+    const handleSaveSettings = (newSettings: LanguageSettings) => {
+        setSettings(newSettings);
+        setShowSettings(false);
+        // Restart session with new settings
+        stopSession().then(() => startSession());
+    };
 
     return (
-        <View className="h-screen flex-1 items-center justify-center pt-24">
-            {!showSettings && (
-                <TouchableOpacity
-                    className="absolute top-4 right-4 z-10 p-2"
-                    onPress={() => setShowSettings(true)}
-                >
-                    <AntDesign name="setting" size={24} color="#4a5568" />
-                </TouchableOpacity>
-            )}
-
-            {showSettings ? (
+        <View style={{ flex: 1 }}>
+            <TranscriptionPage
+                transcript={transcript}
+                translations={translations}
+                onSettingsPress={() => setShowSettings(true)}
+            />
+            <StatusBar
+                isConnected={isConnected}
+                isRecording={isRecording}
+                error={error}
+                permissionGranted={permissionGranted}
+            />
+            <Modal
+                visible={showSettings}
+                animationType="slide"
+                transparent={true}
+            >
                 <Settings
-                    initialSettings={appSettings}
                     onClose={() => setShowSettings(false)}
-                    onSave={(newSettings) => {
-                        setAppSettings({
-                            sourceLanguage: newSettings.sourceLanguage,
-                            primaryTarget: newSettings.primaryTarget,
-                            secondaryTarget: newSettings.secondaryTarget,
-                            tertiaryTarget: newSettings.tertiaryTarget
-                        });
-                        setShowSettings(false);
-                    }}
+                    onSave={handleSaveSettings}
+                    initialSettings={settings}
                 />
-            ) : (
-                <View>
-                    <VoiceBox settings={appSettings} />
-                </View>
-            )}
-            <StatusBar style="auto" />
+            </Modal>
         </View>
     );
 }
