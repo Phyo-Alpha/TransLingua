@@ -78,10 +78,23 @@ export default function App() {
         Toast.show({
           type: 'success',
           text1: 'Settings Saved',
-          text2: 'Session will restart with new settings.'
+          text2: 'Language Setting Changes. Restarting in five seconds',
+          visibilityTime: 6000
         });
         if (isConnected || isRecording) {
-          stopSession().then(() => startSession());
+          stopSession().then(() => {
+            setTimeout(() => {
+              console.log('Starting Session with new settings');
+              startSession().catch((err) => {
+                console.error('Error starting session with new settings', err);
+                Toast.show({
+                  type: 'error',
+                  text1: 'Auto Session Start Failed!',
+                  text2: 'Please manually start the session from status bar'
+                });
+              });
+            }, 5000);
+          });
         }
       } else {
         Toast.show({

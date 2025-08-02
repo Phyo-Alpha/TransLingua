@@ -47,6 +47,17 @@ export default function StatusBar({
   isVisible,
   onToggleVisibility
 }: StatusBarProps) {
+  function logSession() {
+    console.log('============ Current Session State ============');
+    console.log(`Session State: ${sessionState}`);
+    console.log(`Is Connected: ${isConnected}`);
+    console.log(`Is Recording: ${isRecording}`);
+    console.log(`Permission Granted: ${permissionGranted}`);
+    console.log(`Is Loading: ${isLoading}`);
+    console.log(`Error: ${error}`);
+    console.log('============ Current Session State ============');
+  }
+
   if (!isVisible) {
     return (
       <TouchableOpacity
@@ -116,19 +127,19 @@ export default function StatusBar({
           />
         </View>
 
-        {/* Session control buttons */}
-        {/* <View style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <Button
             title="Start Session"
             onPress={onStartSession}
             disabled={isLoading || isConnected || !permissionGranted}
           />
+          <Button title="Log Session" onPress={logSession} />
           <Button
             title="Stop Session"
             onPress={onStopSession}
             disabled={!isConnected}
           />
-        </View> */}
+        </View>
       </View>
     </View>
   );

@@ -15,6 +15,7 @@ import {
   AudioDataEvent
 } from '@siteed/expo-audio-studio';
 import { formatSeconds } from './helpers';
+import { AudioAnalysisEvent } from '@siteed/expo-audio-studio/build/events';
 
 const GLADIA_AUDIO_FORMAT: StreamingAudioFormat = {
   encoding: 'wav/pcm',
@@ -60,7 +61,9 @@ async function initLiveSession(settings: LanguageSettings) {
     console.error(
       `${response.status}: ${(await response.text()) || response.statusText}`
     );
-    throw new Error('Failed to initialize live session');
+    throw new Error(
+      `Failed to initialize live session: ${response.status} ${response.statusText}`
+    );
   }
 
   const initiateResponse = await response.json();
@@ -171,6 +174,34 @@ async function waitForWebSocket(ws: WebSocket) {
   }
 }
 
+// const detectVoice = (analysis: AudioAnalysisEvent): boolean => {
+//   const { dataPoints } = analysis;
+
+//   if (!dataPoints || dataPoints.length === 0) return false;
+
+//   for (const point of dataPoints) {
+//     const { rms, energy, zcr, pitch, spectralCentroid } = point.features || {};
+
+//     // Voice detection thresholds
+//     const hasAdequateEnergy = energy && energy > 0.005;
+//     const hasReasonableRMS = rms && rms > 0.02;
+//     const hasSpeechLikeZCR = zcr && zcr > 0.08 && zcr < 0.6;
+//     const hasHumanPitch = pitch && pitch > 60 && pitch < 500;
+
+//     if (
+//       hasAdequateEnergy &&
+//       hasReasonableRMS &&
+//       hasSpeechLikeZCR &&
+//       hasHumanPitch
+//     ) {
+//       console.log('Voice detected');
+//       return true;
+//     }
+//   }
+
+//   return false;
+// };
+
 export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
   const [initiateResponse, setInitiateResponse] =
     useState<InitiateResponse | null>(null);
@@ -217,13 +248,14 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
   }, [error]);
 
   const startSession = useCallback(async () => {
+    console.log('=== Starting Session ===');
+    console.log('isConnected:', isConnected);
+    console.log('isRecording:', isRecording);
+    console.log('socket:', socket ? 'exists' : 'null');
+
     if (isConnected || isRecording) {
-      Toast.show({
-        type: 'info',
-        text1: 'Session already active',
-        text2: 'Please stop the current session before starting a new one'
-      });
-      return;
+      console.log('Session Already Active, Stopping it');
+      await stopSession();
     }
 
     setIsLoading(true);
@@ -288,6 +320,14 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
           format: 'aac',
           bitrate: 128000
         },
+        // For optimizing voice detection logics, so audio data will be send only when user speaks
+        features: {
+          energy: true, // Overall audio energy
+          rms: true, // Root mean square (amplitude)
+          zcr: true, // Zero crossing rate (speech vs noise)
+          spectralCentroid: true, // Brightness of sound
+          pitch: true // Fundamental frequency
+        },
         onAudioStream: async (audioData: AudioDataEvent) => {
           if (ws.readyState === WebSocket.OPEN) {
             try {
@@ -305,7 +345,9 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
             }
           }
         },
-        onAudioAnalysis: async () => {},
+        onAudioAnalysis: async (event) => {
+          // detectVoice(event);
+        },
         autoResumeAfterInterruption: false
       };
 
@@ -317,16 +359,19 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
     }
   }, [startRecording, handleMessage, settings]);
 
-  const stopSession = useCallback(async () => {
-    if (socket === null || isConnected) {
+  const stopSession = async () => {
+    if (socket === null || !isConnected) {
       Toast.show({
         type: 'info',
         text1: 'No active session',
-        text2: 'Please start a session before stopping it'
+        text2: `Please start a session before stopping it. ${socket ? 'socket exists' : 'socket null'}, Connection Status:  ${isConnected ? 'is connected' : 'is not connected'}`
       });
       return;
     }
     try {
+      await stopRecording();
+      setIsConnected(false);
+      setIsLoading(false);
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: 'stop_recording' }));
         socket.close(1000, 'Session ended by user');
@@ -335,13 +380,10 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
         console.error('WebSocket is not opened');
         setError('Web socket is not opened');
       }
-      await stopRecording();
-      setIsConnected(false);
-      setIsLoading(false);
     } catch (err) {
       setError('Failed to stop session');
     }
-  }, [socket, stopRecording]);
+  };
 
   useEffect(() => {
     return () => {
@@ -349,14 +391,24 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
         socket.close(1000, 'Component unmounted');
         setSocket(null);
       }
+      console.log('Stopping Recording on socket unmount');
       stopRecording().catch(() => {
         // ignore error on stopping recording
       });
     };
   }, [socket]);
 
-  const reset = useCallback(() => {
-    stopSession();
+  const reset = useCallback(async () => {
+    try {
+      await stopSession();
+    } catch (err) {
+      console.error('Error stopping session:', err);
+      try {
+        await stopRecording();
+      } catch (stopErr) {
+        console.error('Failed to stop recording during reset', stopErr);
+      }
+    }
     setInitiateResponse(null);
     setTranscript(null);
     setTranslations([]);
