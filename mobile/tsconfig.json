@@ -3,10 +3,17 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
-
     "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*", "expo-env.d.ts"]
+      "~/*": [
+        "src/*",
+        "expo-env.d.ts"
+      ]
     }
-  }
+  },
+  "include": [
+    "src/**/*",
+    "App.tsx",
+    "nativewind-env.d.ts"
+  ]
 }
