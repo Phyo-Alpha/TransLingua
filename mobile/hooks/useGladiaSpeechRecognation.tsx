@@ -14,8 +14,8 @@ import {
   RecordingConfig,
   AudioDataEvent
 } from '@siteed/expo-audio-studio';
-import { formatSeconds } from './helpers';
-import { AudioAnalysisEvent } from '@siteed/expo-audio-studio/build/events';
+import { languagesLabel } from './languages';
+import { printMessage, setResponse } from './helpers';
 
 const GLADIA_AUDIO_FORMAT: StreamingAudioFormat = {
   encoding: 'wav/pcm',
@@ -70,81 +70,6 @@ async function initLiveSession(settings: LanguageSettings) {
   return initiateResponse;
 }
 
-const languagesLabel = {
-  en: 'English',
-  ms: 'Malay',
-  bn: 'Bengali',
-  ar: 'Arabic',
-  ur: 'Urdu'
-} as const;
-
-function printMessage(message: ServerMessage) {
-  if (message.type === 'transcript' && message.data.is_final) {
-    const { text, start, end, language } = message.data.utterance;
-    console.log(
-      `${formatSeconds(start)} --> ${formatSeconds(
-        end
-      )} | ${languagesLabel[language as keyof typeof languagesLabel]} | ${text.trim()}`
-    );
-  } else if (message.type === 'post_final_transcript') {
-    console.log();
-    console.log('################ End of session ################');
-    console.log();
-    console.log(JSON.stringify(message.data, null, 2));
-  } else if (message.type === 'translation') {
-    const { text, language } = message.data.translated_utterance;
-    console.log(
-      `Translated text: ${languagesLabel[language as keyof typeof languagesLabel]} | ${text.trim()}`
-    );
-  }
-}
-
-interface SetResponseProps {
-  message: ServerMessage;
-  translations: TranslationResponse[];
-  setTranscript: (transcript: TranscriptResponse) => void;
-  setTranslations: (
-    translations:
-      | TranslationResponse[]
-      | ((prev: TranslationResponse[]) => TranslationResponse[])
-  ) => void;
-}
-function setResponse({
-  message,
-  translations,
-  setTranscript,
-  setTranslations
-}: SetResponseProps) {
-  if (message.type === 'transcript' && message.data.is_final) {
-    const { text, language } = message.data.utterance;
-    setTranscript({
-      transcript: text,
-      language: languagesLabel[language as keyof typeof languagesLabel]
-    });
-  } else if (message.type === 'translation') {
-    const { text, language } = message.data.translated_utterance;
-    const targetLanguage =
-      languagesLabel[language as keyof typeof languagesLabel];
-
-    // Use functional update to ensure we're working with the latest state
-    setTranslations((prevTranslations: TranslationResponse[]) => {
-      // Convert previous translations to a map
-      const translationsMap = new Map(
-        prevTranslations.map((t: TranslationResponse) => [t.language, t])
-      );
-
-      // Update or add the new translation
-      translationsMap.set(targetLanguage, {
-        translation: text,
-        language: targetLanguage
-      });
-
-      // Convert back to array and return
-      return Array.from(translationsMap.values());
-    });
-  }
-}
-
 async function waitForWebSocket(ws: WebSocket) {
   try {
     return new Promise<void>((resolve, reject) => {
@@ -173,34 +98,6 @@ async function waitForWebSocket(ws: WebSocket) {
     throw err;
   }
 }
-
-// const detectVoice = (analysis: AudioAnalysisEvent): boolean => {
-//   const { dataPoints } = analysis;
-
-//   if (!dataPoints || dataPoints.length === 0) return false;
-
-//   for (const point of dataPoints) {
-//     const { rms, energy, zcr, pitch, spectralCentroid } = point.features || {};
-
-//     // Voice detection thresholds
-//     const hasAdequateEnergy = energy && energy > 0.005;
-//     const hasReasonableRMS = rms && rms > 0.02;
-//     const hasSpeechLikeZCR = zcr && zcr > 0.08 && zcr < 0.6;
-//     const hasHumanPitch = pitch && pitch > 60 && pitch < 500;
-
-//     if (
-//       hasAdequateEnergy &&
-//       hasReasonableRMS &&
-//       hasSpeechLikeZCR &&
-//       hasHumanPitch
-//     ) {
-//       console.log('Voice detected');
-//       return true;
-//     }
-//   }
-
-//   return false;
-// };
 
 export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
   const [initiateResponse, setInitiateResponse] =
@@ -310,17 +207,11 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
 
       // Start recording with the same config as in App.tsx
       const config: RecordingConfig = {
-        interval: 1000,
+        interval: 100,
         enableProcessing: true,
         sampleRate: 16000,
         channels: 1,
         encoding: 'pcm_16bit',
-        compression: {
-          enabled: false,
-          format: 'aac',
-          bitrate: 128000
-        },
-        // For optimizing voice detection logics, so audio data will be send only when user speaks
         features: {
           energy: true, // Overall audio energy
           rms: true, // Root mean square (amplitude)
