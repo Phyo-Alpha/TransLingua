@@ -5,7 +5,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView
+  ScrollView,
+  TextInput
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { LanguageSettings } from 'types';
@@ -121,6 +122,19 @@ export const Settings = ({
               />
             ))}
           </Picker>
+        </View>
+
+        <View style={styles.settingGroup}>
+          <Text style={styles.label}>Max Words Count Before Reset</Text>
+          <TextInput
+            value={settings.maxWordsCountBeforeReset.toString()}
+            onChangeText={(value) =>
+              setSettings((prev) => ({
+                ...prev,
+                maxWordsCountBeforeReset: value === '' ? 0 : parseInt(value)
+              }))
+            }
+          />
         </View>
 
         <View style={styles.buttonContainer}>

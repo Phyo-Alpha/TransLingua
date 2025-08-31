@@ -78,12 +78,14 @@ interface SetResponseProps {
       | TranslationResponse[]
       | ((prev: TranslationResponse[]) => TranslationResponse[])
   ) => void;
+  maxWordsCountBeforeReset: number;
 }
 function setResponse({
   message,
   translations,
   setTranscript,
-  setTranslations
+  setTranslations,
+  maxWordsCountBeforeReset
 }: SetResponseProps) {
   if (message.type === 'transcript' && message.data.is_final) {
     const { text, language } = message.data.utterance;
@@ -103,9 +105,23 @@ function setResponse({
         prevTranslations.map((t: TranslationResponse) => [t.language, t])
       );
 
+      if (translationsMap.get(targetLanguage)?.translation === undefined) {
+        translationsMap.set(targetLanguage, {
+          translation: text,
+          language: targetLanguage
+        });
+        return Array.from(translationsMap.values());
+      }
+
+      const shouldConcat = prevTranslations.every(
+        (t) => t.translation.split(' ').length < maxWordsCountBeforeReset
+      );
+
       // Update or add the new translation
       translationsMap.set(targetLanguage, {
-        translation: text,
+        translation: shouldConcat
+          ? translationsMap.get(targetLanguage)?.translation + ' ' + text
+          : text,
         language: targetLanguage
       });
 

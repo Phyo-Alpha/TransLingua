@@ -120,7 +120,8 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
           message,
           translations,
           setTranscript,
-          setTranslations
+          setTranslations,
+          maxWordsCountBeforeReset: settings.maxWordsCountBeforeReset
         });
       } catch (err) {
         console.error('Error parsing message:', err);
@@ -207,7 +208,7 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
 
       // Start recording with the same config as in App.tsx
       const config: RecordingConfig = {
-        interval: 100,
+        interval: 500,
         enableProcessing: true,
         sampleRate: 16000,
         channels: 1,

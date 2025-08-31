@@ -85,6 +85,7 @@ export type LanguageSettings = {
   secondLanguage: string;
   thirdLanguage: string;
   fourthLanguage: string;
+  maxWordsCountBeforeReset: number;
 };
 
 export type SessionState = 'Idle' | 'Connected' | 'Recording';

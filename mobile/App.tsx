@@ -5,15 +5,9 @@ import TranscriptionPage from './pages/TranscriptionPage';
 import { useEffect, useState, useCallback } from 'react';
 import StatusBar from './components/StatusBar';
 import { Settings } from './pages/Setting';
-import { LanguageSettings, SessionState } from 'types';
 import Toast from 'react-native-toast-message';
-
-const DEFAULT_SETTINGS: LanguageSettings = {
-  firstLanguage: 'en',
-  secondLanguage: 'ms',
-  thirdLanguage: 'ar',
-  fourthLanguage: 'ta'
-};
+import { LanguageSettings, SessionState } from 'types';
+import { DEFAULT_SETTINGS } from './config/initial-settings';
 
 export default function App() {
   const [permissionGranted, setPermissionGranted] = useState(false);
