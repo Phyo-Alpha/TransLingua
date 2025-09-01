@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,29 +15,61 @@ interface TranscriptionPageProps {
   onSettingsPress: () => void;
 }
 
+// Seven dots separator component
+const SevenDotsSeparator = () => (
+  <View style={styles.separatorContainer}>
+    <View style={styles.separatorLine} />
+    <View style={styles.dotsContainer}>
+      {[...Array(7)].map((_, index) => (
+        <View key={index} style={styles.dot} />
+      ))}
+    </View>
+    <View style={styles.separatorLine} />
+  </View>
+);
+
 export default function TranscriptionPage({
   transcript,
   translations,
   onSettingsPress
 }: TranscriptionPageProps) {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Auto-scroll to bottom when new translations are added
+  useEffect(() => {
+    if (translations.length > 0) {
+      // Use setTimeout to ensure the content has been rendered
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 200);
+    }
+  }, [translations.length]); // Use translations.length for better performance
+
+  // Render translations with separators
+  const renderTranslationsWithSeparators = () => {
+    return translations.map((translation, index) => (
+      <React.Fragment key={index}>
+        <Text style={styles.text}>{translation.translation}</Text>
+        {(index + 1) % 4 === 0 && index < translations.length - 1 && (
+          <SevenDotsSeparator />
+        )}
+      </React.Fragment>
+    ));
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.settingsButton} onPress={onSettingsPress}>
         <Ionicons name="settings-outline" size={24} color="#333" />
       </TouchableOpacity>
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={true}
+        automaticallyAdjustKeyboardInsets={true}
       >
-        {translations.length > 0 && (
-          <>
-            {translations.map((translation, index) => (
-              <Text key={index} style={styles.text}>
-                {translation.translation}
-              </Text>
-            ))}
-          </>
-        )}
+        {translations.length > 0 && <>{renderTranslationsWithSeparators()}</>}
       </ScrollView>
     </View>
   );
@@ -47,7 +79,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    height: '100%'
+    height: '80%'
   },
   scrollView: {
     flex: 1,
@@ -55,10 +87,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
+    flexGrow: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    gap: 100
+    paddingBottom: 20
   },
   section: {
     marginBottom: 24
@@ -66,7 +98,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     color: '#333',
-    lineHeight: 24
+    lineHeight: 24,
+    textAlign: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 8
   },
   settingsButton: {
     position: 'absolute',
@@ -74,5 +109,31 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 1,
     padding: 8
+  },
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    width: '100%',
+    paddingHorizontal: 20
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    opacity: 0.6
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 12
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#999',
+    marginHorizontal: 2,
+    opacity: 0.8
   }
 });

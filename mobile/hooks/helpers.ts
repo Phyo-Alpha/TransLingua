@@ -100,33 +100,38 @@ function setResponse({
 
     // Use functional update to ensure we're working with the latest state
     setTranslations((prevTranslations: TranslationResponse[]) => {
-      // Convert previous translations to a map
-      const translationsMap = new Map(
-        prevTranslations.map((t: TranslationResponse) => [t.language, t])
-      );
+      // // Convert previous translations to a map
+      // const translationsMap = new Map(
+      //   prevTranslations.map((t: TranslationResponse) => [t.language, t])
+      // );
 
-      if (translationsMap.get(targetLanguage)?.translation === undefined) {
-        translationsMap.set(targetLanguage, {
-          translation: text,
-          language: targetLanguage
-        });
-        return Array.from(translationsMap.values());
-      }
+      // if (translationsMap.get(targetLanguage)?.translation === undefined) {
+      //   translationsMap.set(targetLanguage, {
+      //     translation: text,
+      //     language: targetLanguage
+      //   });
+      //   return Array.from(translationsMap.values());
+      // }
 
-      const shouldConcat = prevTranslations.every(
-        (t) => t.translation.split(' ').length < maxWordsCountBeforeReset
-      );
+      // const shouldConcat = prevTranslations.every(
+      //   (t) => t.translation.split(' ').length < maxWordsCountBeforeReset
+      // );
 
-      // Update or add the new translation
-      translationsMap.set(targetLanguage, {
-        translation: shouldConcat
-          ? translationsMap.get(targetLanguage)?.translation + ' ' + text
-          : text,
-        language: targetLanguage
-      });
+      // // Update or add the new translation
+      // translationsMap.set(targetLanguage, {
+      //   translation: shouldConcat
+      //     ? translationsMap.get(targetLanguage)?.translation + ' ' + text
+      //     : text,
+      //   language: targetLanguage
+      // });
 
-      // Convert back to array and return
-      return Array.from(translationsMap.values());
+      // // Convert back to array and return
+      // return Array.from(translationsMap.values());
+
+      return [
+        ...prevTranslations,
+        { translation: text, language: targetLanguage }
+      ];
     });
   }
 }

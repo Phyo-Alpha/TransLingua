@@ -69,6 +69,7 @@ export default function App() {
     (newSettings: LanguageSettings) => {
       if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
         setSettings(newSettings);
+        console.log('New settings', newSettings);
         Toast.show({
           type: 'success',
           text1: 'Settings Saved',
@@ -108,14 +109,12 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      {/* Transcription Page */}
       <TranscriptionPage
         transcript={transcript}
         translations={translations}
         onSettingsPress={() => setShowSettings(true)}
       />
 
-      {/* Settings Modal */}
       <Modal visible={showSettings} animationType="slide" transparent={true}>
         <Settings
           onClose={() => setShowSettings(false)}
@@ -124,7 +123,6 @@ export default function App() {
         />
       </Modal>
 
-      {/* Retry Permission Button */}
       {!permissionGranted && (
         <View style={styles.retryContainer}>
           <Button

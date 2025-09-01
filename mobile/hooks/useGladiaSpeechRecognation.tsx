@@ -34,7 +34,7 @@ async function initLiveSession(settings: LanguageSettings) {
     settings.secondLanguage,
     settings.thirdLanguage,
     settings.fourthLanguage
-  ] as string[];
+  ].filter(Boolean) as string[];
 
   const config: StreamingConfig = {
     language_config: {

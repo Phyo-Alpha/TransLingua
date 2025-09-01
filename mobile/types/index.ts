@@ -82,9 +82,9 @@ export type TranslationResponse = {
 
 export type LanguageSettings = {
   firstLanguage: string;
-  secondLanguage: string;
-  thirdLanguage: string;
-  fourthLanguage: string;
+  secondLanguage?: string;
+  thirdLanguage?: string;
+  fourthLanguage?: string;
   maxWordsCountBeforeReset: number;
 };
 

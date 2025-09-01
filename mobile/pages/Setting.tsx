@@ -65,7 +65,7 @@ export const Settings = ({
             onValueChange={(value) =>
               setSettings((prev) => ({
                 ...prev,
-                secondLanguage: value
+                secondLanguage: value === 'none' ? undefined : value
               }))
             }
           >
@@ -87,7 +87,7 @@ export const Settings = ({
             onValueChange={(value) =>
               setSettings((prev) => ({
                 ...prev,
-                thirdLanguage: value
+                thirdLanguage: value === 'none' ? undefined : value
               }))
             }
           >
@@ -109,7 +109,7 @@ export const Settings = ({
             onValueChange={(value) =>
               setSettings((prev) => ({
                 ...prev,
-                fourthLanguage: value
+                fourthLanguage: value === 'none' ? undefined : value
               }))
             }
           >
