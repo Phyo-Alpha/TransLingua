@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { TranscriptResponse, TranslationResponse } from 'types';
 import { Ionicons } from '@expo/vector-icons';
+import { useSettings } from 'hooks/settings';
 
 interface TranscriptionPageProps {
   transcript: TranscriptResponse | null;
@@ -35,6 +36,11 @@ export default function TranscriptionPage({
 }: TranscriptionPageProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const { settings } = useSettings();
+
+  const usedTranslationsCount =
+    Object.values(settings).filter(Boolean).length - 1; // -1 to not count the max words settings
+
   // Auto-scroll to bottom when new translations are added
   useEffect(() => {
     if (translations.length > 0) {
@@ -50,9 +56,8 @@ export default function TranscriptionPage({
     return translations.map((translation, index) => (
       <React.Fragment key={index}>
         <Text style={styles.text}>{translation.translation}</Text>
-        {(index + 1) % 4 === 0 && index < translations.length - 1 && (
-          <SevenDotsSeparator />
-        )}
+        {(index + 1) % usedTranslationsCount === 0 &&
+          index < translations.length - 1 && <SevenDotsSeparator />}
       </React.Fragment>
     ));
   };
@@ -79,7 +84,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    height: '80%'
+    height: '100%'
   },
   scrollView: {
     flex: 1,
@@ -90,7 +95,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingBottom: 20
+    paddingBottom: 120
   },
   section: {
     marginBottom: 24

@@ -7,12 +7,21 @@ import StatusBar from './components/StatusBar';
 import { Settings } from './pages/Setting';
 import Toast from 'react-native-toast-message';
 import { LanguageSettings, SessionState } from 'types';
-import { DEFAULT_SETTINGS } from './config/initial-settings';
+import { SettingsProvider, useSettings } from './hooks/settings';
 
 export default function App() {
+  return (
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
+  );
+}
+
+function AppContent() {
+  const { settings, setSettings } = useSettings();
+
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState<LanguageSettings>(DEFAULT_SETTINGS);
   const [sessionState, setSessionState] = useState<SessionState>('Idle');
   const [isStatusBarVisible, setIsStatusBarVisible] = useState(true);
 
@@ -25,7 +34,7 @@ export default function App() {
     error,
     transcript,
     translations
-  } = useGladiaSpeechRecognation(settings);
+  } = useGladiaSpeechRecognation();
 
   // Request microphone permission with user feedback
   const requestPermission = useCallback(async () => {
@@ -67,35 +76,27 @@ export default function App() {
   // Handle settings save with change detection and feedback
   const handleSaveSettings = useCallback(
     (newSettings: LanguageSettings) => {
-      if (JSON.stringify(newSettings) !== JSON.stringify(settings)) {
-        setSettings(newSettings);
-        console.log('New settings', newSettings);
-        Toast.show({
-          type: 'success',
-          text1: 'Settings Saved',
-          text2: 'Language Setting Changes. Restarting in five seconds',
-          visibilityTime: 6000
-        });
-        if (isConnected || isRecording) {
-          stopSession().then(() => {
-            setTimeout(() => {
-              console.log('Starting Session with new settings');
-              startSession().catch((err) => {
-                console.error('Error starting session with new settings', err);
-                Toast.show({
-                  type: 'error',
-                  text1: 'Auto Session Start Failed!',
-                  text2: 'Please manually start the session from status bar'
-                });
+      setSettings(newSettings);
+      console.log('New settings', newSettings);
+      Toast.show({
+        type: 'success',
+        text1: 'Settings Saved',
+        text2: 'Language Setting Changes. Restarting in five seconds',
+        visibilityTime: 6000
+      });
+      if (isConnected || isRecording) {
+        stopSession().then(() => {
+          setTimeout(() => {
+            console.log('Starting Session with new settings');
+            startSession().catch((err) => {
+              console.error('Error starting session with new settings', err);
+              Toast.show({
+                type: 'error',
+                text1: 'Auto Session Start Failed!',
+                text2: 'Please manually start the session from status bar'
               });
-            }, 5000);
-          });
-        }
-      } else {
-        Toast.show({
-          type: 'info',
-          text1: 'No Changes',
-          text2: 'Settings remain the same.'
+            });
+          }, 5000);
         });
       }
       setShowSettings(false);
@@ -119,7 +120,6 @@ export default function App() {
         <Settings
           onClose={() => setShowSettings(false)}
           onSave={handleSaveSettings}
-          initialSettings={settings}
         />
       </Modal>
 

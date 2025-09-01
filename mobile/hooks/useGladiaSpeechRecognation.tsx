@@ -16,6 +16,7 @@ import {
 } from '@siteed/expo-audio-studio';
 import { languagesLabel } from './languages';
 import { printMessage, setResponse } from './helpers';
+import { useSettings } from './settings';
 
 const GLADIA_AUDIO_FORMAT: StreamingAudioFormat = {
   encoding: 'wav/pcm',
@@ -99,7 +100,8 @@ async function waitForWebSocket(ws: WebSocket) {
   }
 }
 
-export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
+export default function useGladiaSpeechRecognition() {
+  const { settings } = useSettings();
   const [initiateResponse, setInitiateResponse] =
     useState<InitiateResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -268,6 +270,7 @@ export default function useGladiaSpeechRecognition(settings: LanguageSettings) {
         socket.send(JSON.stringify({ type: 'stop_recording' }));
         socket.close(1000, 'Session ended by user');
         setSocket(null);
+        setInitiateResponse(null);
       } else {
         console.error('WebSocket is not opened');
         setError('Web socket is not opened');

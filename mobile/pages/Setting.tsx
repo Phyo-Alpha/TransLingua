@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { LanguageSettings } from 'types';
+import { useSettings } from 'hooks/settings';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -23,14 +24,12 @@ const LANGUAGES = [
 
 export const Settings = ({
   onClose,
-  onSave,
-  initialSettings
+  onSave
 }: {
   onClose: () => void;
   onSave: (settings: LanguageSettings) => void;
-  initialSettings: LanguageSettings;
 }) => {
-  const [settings, setSettings] = useState<LanguageSettings>(initialSettings);
+  const { settings, setSettings } = useSettings();
 
   return (
     <View style={styles.container}>
