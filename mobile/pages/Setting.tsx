@@ -124,7 +124,7 @@ export const Settings = ({
         </View>
 
         <View style={styles.settingGroup}>
-          <Text style={styles.label}>Max Words Count Before Reset</Text>
+          <Text style={styles.label}>Sections's Max Words</Text>
           <TextInput
             value={settings.maxWordsCountBeforeReset.toString()}
             onChangeText={(value) =>
