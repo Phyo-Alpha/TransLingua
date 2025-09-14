@@ -112,7 +112,7 @@ function AppContent() {
     <View style={styles.container}>
       <TranscriptionPage
         transcript={transcript}
-        translations={translations}
+        response={translations}
         onSettingsPress={() => setShowSettings(true)}
       />
 

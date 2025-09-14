@@ -76,6 +76,11 @@ export type TranscriptResponse = {
 };
 
 export type TranslationResponse = {
+  sectionNumber: number;
+  translations: Translation[];
+};
+
+type Translation = {
   translation: string;
   language: string;
 };

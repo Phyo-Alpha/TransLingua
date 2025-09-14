@@ -12,7 +12,7 @@ import { useSettings } from 'hooks/settings';
 
 interface TranscriptionPageProps {
   transcript: TranscriptResponse | null;
-  translations: TranslationResponse[];
+  response: TranslationResponse[];
   onSettingsPress: () => void;
 }
 
@@ -31,7 +31,7 @@ const SevenDotsSeparator = () => (
 
 export default function TranscriptionPage({
   transcript,
-  translations,
+  response,
   onSettingsPress
 }: TranscriptionPageProps) {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -43,23 +43,30 @@ export default function TranscriptionPage({
 
   // Auto-scroll to bottom when new translations are added
   useEffect(() => {
-    if (translations.length > 0) {
+    if (response.length > 0) {
       // Use setTimeout to ensure the content has been rendered
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 200);
     }
-  }, [translations.length]); // Use translations.length for better performance
+  }, [response]); // Use translations.length for better performance
 
   // Render translations with separators
   const renderTranslationsWithSeparators = () => {
-    return translations.map((translation, index) => (
-      <React.Fragment key={index}>
-        <Text style={styles.text}>{translation.translation}</Text>
-        {(index + 1) % usedTranslationsCount === 0 &&
-          index < translations.length - 1 && <SevenDotsSeparator />}
-      </React.Fragment>
-    ));
+    return response.map((item, idx) => {
+      return (
+        <>
+          {item.translations.map((translation, index) => {
+            return (
+              <React.Fragment key={`${item.sectionNumber}-${index}`}>
+                <Text style={styles.text}>{translation.translation}</Text>
+              </React.Fragment>
+            );
+          })}
+          {idx < response.length - 1 && <SevenDotsSeparator />}
+        </>
+      );
+    });
   };
 
   return (
@@ -74,7 +81,7 @@ export default function TranscriptionPage({
         showsVerticalScrollIndicator={true}
         automaticallyAdjustKeyboardInsets={true}
       >
-        {translations.length > 0 && <>{renderTranslationsWithSeparators()}</>}
+        {response.length > 0 && <>{renderTranslationsWithSeparators()}</>}
       </ScrollView>
     </View>
   );

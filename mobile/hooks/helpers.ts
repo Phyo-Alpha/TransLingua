@@ -1,12 +1,4 @@
-import {
-  InitiateResponse,
-  LanguageSettings,
-  ServerMessage,
-  StreamingAudioFormat,
-  StreamingConfig,
-  TranscriptResponse,
-  TranslationResponse
-} from 'types';
+import { ServerMessage, TranscriptResponse, TranslationResponse } from 'types';
 import { languagesLabel } from './languages';
 
 function formatSeconds(duration: number | null | undefined) {
@@ -100,40 +92,143 @@ function setResponse({
 
     // Use functional update to ensure we're working with the latest state
     setTranslations((prevTranslations: TranslationResponse[]) => {
-      // // Convert previous translations to a map
-      // const translationsMap = new Map(
-      //   prevTranslations.map((t: TranslationResponse) => [t.language, t])
-      // );
+      const r = handleTranslationResponse(
+        prevTranslations,
+        targetLanguage,
+        text,
+        maxWordsCountBeforeReset
+      );
 
-      // if (translationsMap.get(targetLanguage)?.translation === undefined) {
-      //   translationsMap.set(targetLanguage, {
-      //     translation: text,
-      //     language: targetLanguage
-      //   });
-      //   return Array.from(translationsMap.values());
-      // }
+      console.log('--------Translation Response---------');
+      console.log(JSON.stringify(r, null, 2));
+      console.log('--------Translation Response---------');
 
-      // const shouldConcat = prevTranslations.every(
-      //   (t) => t.translation.split(' ').length < maxWordsCountBeforeReset
-      // );
-
-      // // Update or add the new translation
-      // translationsMap.set(targetLanguage, {
-      //   translation: shouldConcat
-      //     ? translationsMap.get(targetLanguage)?.translation + ' ' + text
-      //     : text,
-      //   language: targetLanguage
-      // });
-
-      // // Convert back to array and return
-      // return Array.from(translationsMap.values());
-
-      return [
-        ...prevTranslations,
-        { translation: text, language: targetLanguage }
-      ];
+      return r;
     });
   }
+}
+
+/**
+ * @description This handles the translation response from Gladia and update the existing translations array
+ *
+ * @param prevTranslations
+ * @param targetLanguage
+ * @param text
+ * @param maxWordsCountBeforeReset - The maximum number of words before resetting the translation
+ */
+function handleTranslationResponse(
+  prevTranslations: TranslationResponse[],
+  targetLanguage: string,
+  text: string,
+  maxWordsCountBeforeReset: number
+) {
+  const lastTranslation = prevTranslations[prevTranslations.length - 1];
+
+  // If there is no last translation, we need to create a new translation response
+  if (!lastTranslation) {
+    return [
+      {
+        sectionNumber: 1,
+        translations: [
+          {
+            translation: text,
+            language: targetLanguage
+          }
+        ]
+      }
+    ];
+  }
+
+  const lastTranslationSection = lastTranslation.sectionNumber;
+
+  // Finding the previous translation with the same target language
+  const prevTranslation = lastTranslation.translations.find(
+    (t) => t.language === targetLanguage
+  );
+
+  if (!prevTranslation) {
+    const newTranslation = {
+      translation: text,
+      language: targetLanguage
+    };
+
+    const updatedTranslations = [
+      ...lastTranslation.translations,
+      newTranslation
+    ];
+
+    // Update the last section instead of creating a new one
+    return [
+      ...prevTranslations.slice(0, -1),
+      {
+        sectionNumber: lastTranslationSection,
+        translations: updatedTranslations
+      }
+    ];
+  }
+
+  const shouldConcat =
+    prevTranslation &&
+    prevTranslation.translation.split(' ').length < maxWordsCountBeforeReset;
+
+  if (shouldConcat) {
+    const otherLanguageTranslations = lastTranslation.translations.filter(
+      (t) => t.language !== targetLanguage
+    );
+
+    const newTranslation = {
+      translation: prevTranslation.translation + ' ' + text,
+      language: targetLanguage
+    };
+
+    // Update the last section instead of creating a new one
+    return [
+      ...prevTranslations.slice(0, -1),
+      {
+        sectionNumber: lastTranslationSection,
+        translations: [...otherLanguageTranslations, newTranslation]
+      }
+    ];
+  } else {
+    // Create a new section only when we need to reset
+    const newTranslationSection = {
+      sectionNumber: lastTranslationSection + 1,
+      translations: [
+        {
+          translation: text,
+          language: targetLanguage
+        }
+      ]
+    };
+    return [...prevTranslations, newTranslationSection];
+  }
+
+  // const translationsMap = new Map(
+  //   prevTranslations.map((t: TranslationResponse) => [t.language, t])
+  // );
+
+  // if (translationsMap.get(targetLanguage)?.translation === undefined) {
+  //   translationsMap.set(targetLanguage, {
+  //     translation: text,
+  //     language: targetLanguage
+  //   });
+  //   return Array.from(translationsMap.values());
+  // }
+
+  // const shouldConcat = prevTranslations.every(
+  //   (t) => t.translation.split(' ').length < maxWordsCountBeforeReset
+  // );
+
+  // // Update or add the new translation
+  // translationsMap.set(targetLanguage, {
+  //   translation: shouldConcat
+  //     ? translationsMap.get(targetLanguage)?.translation + ' ' + text
+  //     : text,
+  //   language: targetLanguage
+  // });
+
+  // // Convert back to array and return
+  // return Array.from(translationsMap.values());
 }
 
 export {
