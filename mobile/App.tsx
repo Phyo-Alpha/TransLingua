@@ -8,6 +8,7 @@ import { Settings } from './pages/Setting';
 import Toast from 'react-native-toast-message';
 import { LanguageSettings, SessionState } from 'types';
 import { SettingsProvider, useSettings } from './hooks/settings';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App() {
   return (
@@ -109,43 +110,45 @@ function AppContent() {
   };
 
   return (
-    <View style={styles.container}>
-      <TranscriptionPage
-        transcript={transcript}
-        response={translations}
-        onSettingsPress={() => setShowSettings(true)}
-      />
-
-      <Modal visible={showSettings} animationType="slide" transparent={true}>
-        <Settings
-          onClose={() => setShowSettings(false)}
-          onSave={handleSaveSettings}
+    <GestureHandlerRootView>
+      <View style={styles.container}>
+        <TranscriptionPage
+          transcript={transcript}
+          response={translations}
+          onSettingsPress={() => setShowSettings(true)}
         />
-      </Modal>
 
-      {!permissionGranted && (
-        <View style={styles.retryContainer}>
-          <Button
-            title="Retry Permission Request"
-            onPress={requestPermission}
+        <Modal visible={showSettings} animationType="slide" transparent={true}>
+          <Settings
+            onClose={() => setShowSettings(false)}
+            onSave={handleSaveSettings}
           />
-        </View>
-      )}
-      {/* Status Bar with session state */}
-      <StatusBar
-        sessionState={sessionState}
-        isConnected={isConnected}
-        isRecording={isRecording}
-        error={error}
-        permissionGranted={permissionGranted}
-        onStartSession={startSession}
-        onStopSession={stopSession}
-        isLoading={isLoading}
-        isVisible={isStatusBarVisible}
-        onToggleVisibility={toggleStatusBarVisibility}
-      />
-      <Toast />
-    </View>
+        </Modal>
+
+        {!permissionGranted && (
+          <View style={styles.retryContainer}>
+            <Button
+              title="Retry Permission Request"
+              onPress={requestPermission}
+            />
+          </View>
+        )}
+        {/* Status Bar with session state */}
+        <StatusBar
+          sessionState={sessionState}
+          isConnected={isConnected}
+          isRecording={isRecording}
+          error={error}
+          permissionGranted={permissionGranted}
+          onStartSession={startSession}
+          onStopSession={stopSession}
+          isLoading={isLoading}
+          isVisible={isStatusBarVisible}
+          onToggleVisibility={toggleStatusBarVisibility}
+        />
+        <Toast />
+      </View>
+    </GestureHandlerRootView>
   );
 }
 

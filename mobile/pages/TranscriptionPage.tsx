@@ -2,19 +2,31 @@ import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
+  Dimensions
 } from 'react-native';
 import { TranscriptResponse, TranslationResponse } from 'types';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettings } from 'hooks/settings';
+import Carousel from 'react-native-reanimated-carousel';
+import { useSharedValue } from 'react-native-reanimated';
 
 interface TranscriptionPageProps {
   transcript: TranscriptResponse | null;
   response: TranslationResponse[];
   onSettingsPress: () => void;
 }
+
+// Carousel item component for each translation section
+const CarouselItem = ({ item }: { item: TranslationResponse }) => (
+  <View style={styles.carouselItem}>
+    {item.translations.map((translation, index) => (
+      <Text key={`${item.sectionNumber}-${index}`} style={styles.text}>
+        {translation.translation}
+      </Text>
+    ))}
+  </View>
+);
 
 // Seven dots separator component
 const SevenDotsSeparator = () => (
@@ -30,59 +42,75 @@ const SevenDotsSeparator = () => (
 );
 
 export default function TranscriptionPage({
-  transcript,
   response,
   onSettingsPress
 }: TranscriptionPageProps) {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const progress = useSharedValue<number>(0);
+  const windowWidth = Dimensions.get('window').width;
+  const windowHeight = Dimensions.get('window').height;
+  const carouselRef = useRef<any>(null);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
 
-  const { settings } = useSettings();
-
-  const usedTranslationsCount =
-    Object.values(settings).filter(Boolean).length - 1; // -1 to not count the max words settings
-
-  // Auto-scroll to bottom when new translations are added
+  // Auto scroll to last item when new translations are added
   useEffect(() => {
-    if (response.length > 0) {
-      // Use setTimeout to ensure the content has been rendered
+    if (response.length > 0 && carouselRef.current) {
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 200);
+        carouselRef.current?.scrollTo({
+          index: response.length - 1,
+          animated: true
+        });
+        setCurrentIndex(response.length - 1);
+      }, 300);
     }
-  }, [response]); // Use translations.length for better performance
+  }, [response.length]);
 
-  // Render translations with separators
-  const renderTranslationsWithSeparators = () => {
-    return response.map((item, idx) => {
-      return (
-        <>
-          {item.translations.map((translation, index) => {
-            return (
-              <React.Fragment key={`${item.sectionNumber}-${index}`}>
-                <Text style={styles.text}>{translation.translation}</Text>
-              </React.Fragment>
-            );
-          })}
-          {idx < response.length - 1 && <SevenDotsSeparator />}
-        </>
-      );
-    });
-  };
+  // Render carousel item
+  const renderCarouselItem = ({ item }: { item: TranslationResponse }) => (
+    <CarouselItem item={item} />
+  );
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.settingsButton} onPress={onSettingsPress}>
         <Ionicons name="settings-outline" size={24} color="#333" />
       </TouchableOpacity>
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={true}
-        automaticallyAdjustKeyboardInsets={true}
-      >
-        {response.length > 0 && <>{renderTranslationsWithSeparators()}</>}
-      </ScrollView>
+
+      {response.length > 0 ? (
+        <View style={styles.carouselContainer}>
+          <Carousel
+            ref={carouselRef}
+            data={response}
+            width={windowWidth}
+            height={windowHeight - 100} // Account for settings button and padding
+            loop={false}
+            pagingEnabled={true}
+            snapEnabled={true}
+            mode="parallax"
+            modeConfig={{
+              parallaxScrollingScale: 0.9,
+              parallaxScrollingOffset: 50
+            }}
+            onProgressChange={progress}
+            onSnapToItem={(index) => setCurrentIndex(index)}
+            renderItem={renderCarouselItem}
+            style={styles.carousel}
+            vertical
+          />
+
+          {/* Page Indicator */}
+          {response.length > 1 && (
+            <View style={styles.pageIndicator}>
+              <Text style={styles.pageIndicatorText}>
+                {currentIndex + 1} / {response.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No translations yet</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -93,35 +121,76 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     height: '100%'
   },
-  scrollView: {
+  carouselContainer: {
     flex: 1,
-    paddingVertical: 48,
-    paddingHorizontal: 16
+    paddingTop: 20 // Space for settings button
   },
-  content: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
+  carousel: {
+    width: '100%'
+  },
+  carouselItem: {
+    flex: 1,
+    gap: 20,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 120
-  },
-  section: {
-    marginBottom: 24
+    paddingHorizontal: 20,
+    paddingVertical: 40
   },
   text: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
-    lineHeight: 24,
+    lineHeight: 28,
     textAlign: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 8
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    fontWeight: '400'
   },
   settingsButton: {
     position: 'absolute',
     top: 16,
     right: 16,
     zIndex: 1,
-    padding: 8
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center'
+  },
+  pageIndicator: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginHorizontal: 20,
+    borderRadius: 20
+  },
+  pageIndicatorText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500'
+  },
+  // Keep separator styles for potential future use
   separatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
